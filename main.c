@@ -4,9 +4,16 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define Height 6
-#define Width 10
-#define NB_GHOSTS 5
+#define HEIGHT 6
+#define WIDTH 10
+#define NB_GHOSTS 3
+#define SYMBOL_PACMAN 'C'
+#define SYMBOL_GHOST 'F'
+#define SYMBOL_FRUIT '*'
+
+#define COLOR_RED "\x1b[31m"
+#define COLOR_YELLOW "\x1b[33m"
+#define COLOR_RESET "\x1b[0m"
 
 struct coord
 {
@@ -28,7 +35,7 @@ struct Ghost
 
 struct Ghost listGhosts[NB_GHOSTS];
 
-struct PacMan playerPacMan = {
+struct PacMan player = {
         {
             .x = 0,
             .y = 0,
@@ -36,97 +43,103 @@ struct PacMan playerPacMan = {
         .nb_point = 0
 };
 
-void initialize()
-{
-    // initialisation de la grille.
-    
-    // placer tous les fantômes de façon aléatoire.
 
-    // placer les points à ramasser
+char gameGrid[HEIGHT][WIDTH];
 
-    // placer PACMAN
-}
-
-char gameGrid[Height][Width];
-
-bool ifEmpty(){
-    //for (int x = 0; x < Height; x++)
-    //{
-        for (int y = 0; y < Width; y++)
-        {
-            //printf("x = %d, y = %d ,value = %s",x,y, gameGrid[x][y]);
-            //printf("\n");
-            printf("%d \n", y);
-           /* if (!gameGrid[x][y])
-            {
-                printf("c_est vide \n");
-            }*/
+/*
+*   Cette fonction teste s'il existe un Ghost à la position (x,y)
+*   Return True, si oui, False sinon
+*/
+bool ifExistGhost(int x, int y){
+    for (int i = 0; i < NB_GHOSTS; i++)
+    {
+        if(listGhosts[i].position.x == x && listGhosts[i].position.y == y){
+            return true;
         }
-      //  break;
-    //}
-    //return false;
-    
+    }
+    return false;
 }
 
 void initialize_grid(){
     // Initialisation des fantômes
     for (int i = 0; i < NB_GHOSTS; ++i) {
-        srand(time(NULL));
-        int x = rand() % Height;
-        int y = rand() % Width;
-        // On vérifie si la position n'est pas prise
-         ifEmpty();
-         /*
-        printf("un nombre = %d \n", rand());
-        printf("un nombre 2 = %d \n\n", rand());
-        printf("x = %d et y = %d pour le fantome %d \n\n", x,y,i);
-        gameGrid[x][y] = putchar('F');
+        // On créé des coordonnées aléatoires
+        int x,y;
+        do
+        {
+        //  srand(time(NULL));
+
+            x = rand() % HEIGHT;
+            y = rand() % WIDTH;
+        } while (ifExistGhost(x,y));
+        // On créé un nouveau fantôme
         struct Ghost ghost = {
                 {
                         .x = x,
                         .y = y,
                 }
         };
+        // on l'ajoute à la liste des fantômes
         listGhosts[i] = ghost;
-        */
+        // printf("x = %d et y = %d pour le fantome %d \n\n", x,y,i);
+
+        // on l'ajoute dans la grille de jeu
+        gameGrid[x][y] = SYMBOL_GHOST;
+
     }
-/*
-    for (int i = 0; i < Height; i++)
+    // On ajoute notre PACMAN
+    gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
+    // On remplie toute la grille avec les espaces vides
+    for (int i = 0; i < HEIGHT; i++)
     {
-        for (int j = 0; j < Width; j++)
+        for (int j = 0; j < WIDTH; j++)
         {
-            if(gameGrid[i][j] != 'F'){
-                gameGrid[i][j] = putchar(' ');
+            if(gameGrid[i][j] != SYMBOL_GHOST && gameGrid[i][j] != SYMBOL_PACMAN){
+                gameGrid[i][j] = SYMBOL_FRUIT;
             }
         }
-        
+
     }
-    */
 }
 
 // Affiche la grille entière
 void display_grid(){
-    printf("\n");
-    putchar('+');
 
-    for(int i = 0; i < Width; ++i){
+    printf("\n");
+
+    putchar('+');
+    for(int i = 0; i < WIDTH; ++i){
         printf("---+");
     }
 
     putchar('\n');
 
-    for(int i = 0; i < Height; ++i){
+    for(int i = 0; i < HEIGHT; ++i){
         putchar('|');
 
-        for(int j = 0; j < Width; ++j){
+        for(int j = 0; j < WIDTH; ++j){
 
-            printf(" %c |", gameGrid[i][j]);
+            if (gameGrid[i][j] == SYMBOL_PACMAN)
+            {
+                printf(COLOR_YELLOW " %c " COLOR_RESET, gameGrid[i][j]);
+                printf("|");
+
+            }else if(gameGrid[i][j] == SYMBOL_GHOST){
+
+                printf(COLOR_RED " %c " COLOR_RESET, gameGrid[i][j]);
+                printf("|");
+            }else{
+
+                // printf(COLOR_RED " %c " COLOR_RESET, gameGrid[i][j]);
+                printf( " %c |", gameGrid[i][j]);
+            }
+
         }
 
         putchar('\n');
         putchar('+');
 
-        for(int j = 0; j < Width; ++j){
+        for(int j = 0; j < WIDTH; ++j){
             printf("---+");
         }
 
@@ -168,8 +181,9 @@ int chooseDirection(){
 
 int main(int argc, char const *argv[])
 {
-//    initialize_grid();
-    //display_grid();    
+    initialize_grid();
+    printf("\n");
+    display_grid();
 
     return 0;
 }
