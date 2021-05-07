@@ -6,12 +6,23 @@
 
 #define HEIGHT 6
 #define WIDTH 10
-#define NB_GHOSTS 3
+
+#define NB_GHOSTS 4
+#define NB_FRUIT 20
+
 #define SYMBOL_PACMAN 'C'
 #define SYMBOL_GHOST 'F'
 #define SYMBOL_FRUIT '*'
+#define SYMBOL_FREE ' '
+#define SYMBOL_FAIL 'X'
+
+#define CODE_UP 122
+#define CODE_DOWN 115
+#define CODE_LEFT 113
+#define CODE_RIGHT 100
 
 #define COLOR_RED "\x1b[31m"
+#define COLOR_GREEN "\x1b[32m"
 #define COLOR_YELLOW "\x1b[33m"
 #define COLOR_RESET "\x1b[0m"
 
@@ -46,63 +57,105 @@ struct PacMan player = {
 
 char gameGrid[HEIGHT][WIDTH];
 
-/*
-*   Cette fonction teste s'il existe un Ghost à la position (x,y)
-*   Return True, si oui, False sinon
-*/
-bool ifExistGhost(int x, int y){
-    for (int i = 0; i < NB_GHOSTS; i++)
+/**
+ * Renvoie le nombre de cases vides dans la grille
+ * @return { Integer } numberOfFreeSpaces
+ */
+int numberOfFreeSpaces(){
+    int i,j,numberOfFreeSpaces = 0;
+    for (i = 0; i < HEIGHT; i++)
     {
-        if(listGhosts[i].position.x == x && listGhosts[i].position.y == y){
-            return true;
+        for (j = 0; j < WIDTH; j++)
+        {
+            if(gameGrid[i][j] != SYMBOL_GHOST && gameGrid[i][j] != SYMBOL_PACMAN && gameGrid[i][j] != SYMBOL_FRUIT){
+                numberOfFreeSpaces +=1;
+            }
         }
+
     }
-    return false;
+    return numberOfFreeSpaces;
 }
 
+/**
+* Renvoie une valeur aléatoire entre [0-maximum]
+* @param { Integer } maximum
+* @return { Integer } valeur
+*/ 
+int randomNumber(int maximum){
+
+    int valeur = rand() % maximum;
+    return valeur;
+}
+
+/** 
+ * Initialise la grille
+ */
 void initialize_grid(){
-    // Initialisation des fantômes
+
+    // Positionnement des fantômes
     for (int i = 0; i < NB_GHOSTS; ++i) {
-        // On créé des coordonnées aléatoires
+        if (numberOfFreeSpaces() == 0)
+        {
+            printf("Il n'y a plus de cases vides");
+            break;
+        }
         int x,y;
         do
         {
-        //  srand(time(NULL));
+            x = randomNumber(HEIGHT);
+            y = randomNumber(WIDTH);
+        } while ((gameGrid[x][y] == SYMBOL_GHOST) || (((x == player.position.x) && (y == player.position.y))));
 
-            x = rand() % HEIGHT;
-            y = rand() % WIDTH;
-        } while (ifExistGhost(x,y));
-        // On créé un nouveau fantôme
         struct Ghost ghost = {
                 {
                         .x = x,
                         .y = y,
                 }
         };
-        // on l'ajoute à la liste des fantômes
+
         listGhosts[i] = ghost;
-        // printf("x = %d et y = %d pour le fantome %d \n\n", x,y,i);
 
-        // on l'ajoute dans la grille de jeu
         gameGrid[x][y] = SYMBOL_GHOST;
-
     }
-    // On ajoute notre PACMAN
+
+    // Positionnement du joueur
     gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
-    // On remplie toute la grille avec les espaces vides
+
+    // Positionnement des fruits
+    for (int i = 0; i < NB_FRUIT; ++i) {
+        if (numberOfFreeSpaces() == 0)
+        {
+            printf("Il n'y a plus de cases vides");
+            break;
+        }
+
+        int x,y;
+        do
+        {
+            x = randomNumber(HEIGHT);
+            y = randomNumber(WIDTH);
+        } while ((gameGrid[x][y] == SYMBOL_GHOST) || (gameGrid[x][y] == SYMBOL_FRUIT) || (((x == player.position.x) && (y == player.position.y))));
+    
+        gameGrid[x][y] = SYMBOL_FRUIT;
+    }
+
+    
+    // Positionnement des cases vides
     for (int i = 0; i < HEIGHT; i++)
     {
         for (int j = 0; j < WIDTH; j++)
         {
-            if(gameGrid[i][j] != SYMBOL_GHOST && gameGrid[i][j] != SYMBOL_PACMAN){
-                gameGrid[i][j] = SYMBOL_FRUIT;
+            if(gameGrid[i][j] != SYMBOL_GHOST && gameGrid[i][j] != SYMBOL_PACMAN && gameGrid[i][j] != SYMBOL_FRUIT){
+                gameGrid[i][j] = ' ';
             }
         }
 
     }
 }
 
-// Affiche la grille entière
+/** 
+ * Affiche la grille entière
+ */
 void display_grid(){
 
     printf("\n");
@@ -128,9 +181,12 @@ void display_grid(){
 
                 printf(COLOR_RED " %c " COLOR_RESET, gameGrid[i][j]);
                 printf("|");
-            }else{
+            }else if(gameGrid[i][j] == SYMBOL_FRUIT){
 
-                // printf(COLOR_RED " %c " COLOR_RESET, gameGrid[i][j]);
+                printf(COLOR_GREEN " %c " COLOR_RESET, gameGrid[i][j]);
+                printf("|");
+                // printf( " %c |", gameGrid[i][j]);
+            }else{
                 printf( " %c |", gameGrid[i][j]);
             }
 
@@ -149,8 +205,12 @@ void display_grid(){
     putchar('\n');
 }
 
-// Affiche un message si la condition est remplie
-void showError(message, condition){
+/** 
+ * Affiche un message si la condition est remplie
+ * @param { char* } message
+ * @param { bool } condition
+ */
+void showError(char* message,bool condition){
 
     if (condition)
     {
@@ -158,32 +218,45 @@ void showError(message, condition){
     }
 }
 
-// Retourne un entier qui correspond à la direction choisie
+/** 
+ * Retourne un entier qui correspond à la direction saisie
+ * @return { Integer } direction
+ */
 int chooseDirection(){
 
     bool condition;
     int direction;
+    
     do{
-        printf("Choisissez une direction avec les fleches du clavier\n");
-        direction = _getch();
-        condition = ((direction != 72 ) && (direction != 75) && (direction !=  77) && (direction != 80));
+        printf("Choisissez une direction: z(haut),q(gauche),d(droite),s(bas) du clavier\n");
+        direction = getchar();
+        condition = ((direction != 122 ) && (direction != 113) && (direction !=  100) && (direction != 115));
         showError("Erreur de saisie", condition);
     }while(condition);
 
     switch(direction) {
-        case 72: printf("Fleche du haut\n");        break;
-        case 75: printf("Fleche de gauche\n");      break;
-        case 77: printf("Fleche de droite\n");      break;
-        case 80: printf("Fleche du bas\n");         break;
+        case CODE_UP: printf("Fleche du haut\n");        break;
+        case CODE_DOWN: printf("Fleche du bas\n");         break;
+        case CODE_LEFT: printf("Fleche de gauche\n");      break;
+        case CODE_RIGHT: printf("Fleche de droite\n");      break;
+        default: printf("touche non reconnue");      break;
     }
+    
     return direction;
 }
 
+// ******************************************** //
+
 int main(int argc, char const *argv[])
 {
+    srand(time(NULL));
+
     initialize_grid();
     printf("\n");
     display_grid();
+    
+    int som = numberOfFreeSpaces();
+    printf("\n Il y a %d cases vides \n", som);
 
     return 0;
 }
