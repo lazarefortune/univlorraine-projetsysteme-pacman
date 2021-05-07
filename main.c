@@ -48,8 +48,8 @@ struct Ghost listGhosts[NB_GHOSTS];
 
 struct PacMan player = {
         {
-            .x = 0,
-            .y = 0,
+            .x = 2,
+            .y = 5,
         },
         .nb_point = 0
 };
@@ -154,55 +154,54 @@ void initialize_grid(){
 }
 
 /** 
- * Affiche la grille entière
+ * Affiche une ligne
  */
-void display_grid(){
-
-    printf("\n");
-
+void createLine(){
+    putchar('\n');
     putchar('+');
     for(int i = 0; i < WIDTH; ++i){
         printf("---+");
     }
-
     putchar('\n');
+}
+
+/** 
+ * Affiche la grille entière
+ */
+void display_grid(){
+
+    createLine();
 
     for(int i = 0; i < HEIGHT; ++i){
         putchar('|');
 
         for(int j = 0; j < WIDTH; ++j){
 
-            if (gameGrid[i][j] == SYMBOL_PACMAN)
+            switch (gameGrid[i][j])
             {
+            case SYMBOL_PACMAN:
                 printf(COLOR_YELLOW " %c " COLOR_RESET, gameGrid[i][j]);
                 printf("|");
-
-            }else if(gameGrid[i][j] == SYMBOL_GHOST){
-
+                break;
+            case SYMBOL_GHOST:
                 printf(COLOR_RED " %c " COLOR_RESET, gameGrid[i][j]);
                 printf("|");
-            }else if(gameGrid[i][j] == SYMBOL_FRUIT){
-
+                break;
+            case SYMBOL_FRUIT:
                 printf(COLOR_GREEN " %c " COLOR_RESET, gameGrid[i][j]);
                 printf("|");
-                // printf( " %c |", gameGrid[i][j]);
-            }else{
+                break;
+            default:
                 printf( " %c |", gameGrid[i][j]);
+                break;
             }
 
         }
 
-        putchar('\n');
-        putchar('+');
-
-        for(int j = 0; j < WIDTH; ++j){
-            printf("---+");
-        }
-
-        putchar('\n');
+        createLine();
     }
 
-    putchar('\n');
+    printf("\n");
 }
 
 /** 
