@@ -10,6 +10,9 @@
 #define NB_GHOSTS 4
 #define NB_FRUIT 20
 
+// Le nombre de points qui met fin à la partie
+#define POINT_FAIL -1
+
 #define SYMBOL_PACMAN 'C'
 #define SYMBOL_GHOST 'F'
 #define SYMBOL_FRUIT '*'
@@ -179,21 +182,21 @@ void display_grid(){
 
             switch (gameGrid[i][j])
             {
-            case SYMBOL_PACMAN:
-                printf(COLOR_YELLOW " %c " COLOR_RESET, gameGrid[i][j]);
-                printf("|");
-                break;
-            case SYMBOL_GHOST:
-                printf(COLOR_RED " %c " COLOR_RESET, gameGrid[i][j]);
-                printf("|");
-                break;
-            case SYMBOL_FRUIT:
-                printf(COLOR_GREEN " %c " COLOR_RESET, gameGrid[i][j]);
-                printf("|");
-                break;
-            default:
-                printf( " %c |", gameGrid[i][j]);
-                break;
+                case SYMBOL_PACMAN:
+                    printf(COLOR_YELLOW " %c " COLOR_RESET, gameGrid[i][j]);
+                    printf("|");
+                    break;
+                case SYMBOL_GHOST:
+                    printf(COLOR_RED " %c " COLOR_RESET, gameGrid[i][j]);
+                    printf("|");
+                    break;
+                case SYMBOL_FRUIT:
+                    printf(COLOR_GREEN " %c " COLOR_RESET, gameGrid[i][j]);
+                    printf("|");
+                    break;
+                default:
+                    printf( " %c |", gameGrid[i][j]);
+                    break;
             }
 
         }
@@ -229,7 +232,7 @@ int chooseDirection(){
     do{
         printf("Choisissez une direction: z(haut),q(gauche),d(droite),s(bas) du clavier\n");
         direction = getchar();
-        condition = ((direction != 122 ) && (direction != 113) && (direction !=  100) && (direction != 115));
+        condition = ((direction != CODE_UP ) && (direction != CODE_LEFT) && (direction !=  CODE_DOWN) && (direction != CODE_RIGHT));
         showError("Erreur de saisie", condition);
     }while(condition);
 
@@ -244,16 +247,139 @@ int chooseDirection(){
     return direction;
 }
 
+/**
+ * Renvoie -1 / +1 en fonction du code de la direction
+ * @param { Integer } direction
+ * @return { Integer } -1 / +1
+ */
+int giveMoveValue(int direction){
+    
+    switch (direction)
+    {
+    case CODE_UP:
+        return -1;
+        break;
+    case CODE_DOWN:
+        return 1;
+        break;
+    case CODE_LEFT:
+        return -1;
+        break;
+    case CODE_RIGHT:
+        return 1;
+        break;
+    default:
+        return EXIT_FAILURE; 
+        break;
+    }
+}
+/**
+ * Renvoie la nouvelle position en abscisse/ordonnee du joueur
+ * @param { Integer } coordonnee
+ * @param { Integer } maximum
+ * @return { Integer } resultat
+ */
+int calculatePos(int coordonnee, int maximum){
+    int resultat = coordonnee%maximum;
+    if (resultat < 0)
+    {
+        resultat += maximum;
+    }
+    return resultat;
+}
+
+/**
+ * Deplace le joueur dans la grille
+ */
+void movePlayer(int direction){
+
+    /*
+    [
+        0  [0,1,2,3,4,5,6],
+        1  [0,1,2,3,4,5,6],
+        2  [0,1,2,3,4,5,6],
+        3  [0,1,2,3,4,5,6],
+    ]
+    */
+
+    int oldValue = 0;
+    int deplacement = giveMoveValue(direction) ;
+    // A REFACTORER ---- TROP LONG
+    if (direction == CODE_UP || direction == CODE_DOWN)
+    {
+        oldValue = player.position.x;
+        // player.position.x = (player.position.x + deplacement)%HEIGHT;
+        player.position.x = calculatePos((player.position.x + deplacement), HEIGHT);
+
+        // on test ce qui se trouve à cet endroit dans la grille
+        char element = gameGrid[player.position.x][player.position.y];
+        if (element == SYMBOL_FRUIT)
+        {
+            gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
+            gameGrid[oldValue][player.position.y] = SYMBOL_FREE;
+            player.nb_point += 100;
+            // printf("le joueur possède %d points\n", player.nb_point);
+
+        }else if(element == SYMBOL_GHOST){
+
+            gameGrid[oldValue][player.position.y] = SYMBOL_FREE;
+            gameGrid[player.position.x][player.position.y] = SYMBOL_FAIL;
+            player.nb_point = POINT_FAIL;
+            printf("TU AS PERDU !! partie terminee \n");
+
+        }else if (element == SYMBOL_FREE){
+
+            gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
+            gameGrid[oldValue][player.position.y] = SYMBOL_FREE;
+
+        }
+    }else if(direction == CODE_LEFT || direction == CODE_RIGHT){
+        oldValue = player.position.y;
+        // player.position.y = (player.position.y + deplacement)%WIDTH;
+        player.position.y = calculatePos((player.position.y + deplacement), WIDTH);
+
+        // on test ce qui se trouve à cet endroit dans la grille
+        char element = gameGrid[player.position.x][player.position.y];
+        if (element == SYMBOL_FRUIT)
+        {
+
+            gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
+            gameGrid[player.position.x][oldValue] = SYMBOL_FREE;
+            player.nb_point += 100;
+            // printf("le joueur possède %d points\n", player.nb_point);
+
+        }else if(element == SYMBOL_GHOST){
+
+            gameGrid[player.position.x][player.position.y] = SYMBOL_FAIL;
+            gameGrid[player.position.x][oldValue] = SYMBOL_FREE;
+            player.nb_point = POINT_FAIL;
+            printf("TU AS PERDU !! partie terminee \n");
+
+        }else if (element == SYMBOL_FREE){
+
+            gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
+            gameGrid[player.position.x][oldValue] = SYMBOL_FREE;
+
+        }
+    }
+
+    display_grid();
+    // printf("le joueur possède %d points\n", player.nb_point);      
+}
+
 // ******************************************** //
 
 int main(int argc, char const *argv[])
 {
     srand(time(NULL));
-
     initialize_grid();
     printf("\n");
     display_grid();
-    
+    movePlayer(CODE_LEFT);
+    movePlayer(CODE_UP);
+    movePlayer(CODE_LEFT);
+    movePlayer(CODE_DOWN);
+    movePlayer(CODE_RIGHT);
     int som = numberOfFreeSpaces();
     printf("\n Il y a %d cases vides \n", som);
 
