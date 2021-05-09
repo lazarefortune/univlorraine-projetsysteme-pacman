@@ -149,7 +149,7 @@ void initialize_grid(){
         for (int j = 0; j < WIDTH; j++)
         {
             if(gameGrid[i][j] != SYMBOL_GHOST && gameGrid[i][j] != SYMBOL_PACMAN && gameGrid[i][j] != SYMBOL_FRUIT){
-                gameGrid[i][j] = ' ';
+                gameGrid[i][j] = SYMBOL_FREE;
             }
         }
 
