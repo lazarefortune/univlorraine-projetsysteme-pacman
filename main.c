@@ -80,6 +80,25 @@ int numberOfFreeSpaces(){
 }
 
 /**
+ * Renvoie le nombre de fruits restant
+ * @return { Integer } numberOfFruit
+ */
+int numberOfFruit(){
+    int i,j,numberOfFruit = 0;
+    for (i = 0; i < HEIGHT; i++)
+    {
+        for (j = 0; j < WIDTH; j++)
+        {
+            if(gameGrid[i][j] == SYMBOL_FRUIT){
+                numberOfFruit +=1;
+            }
+        }
+
+    }
+    return numberOfFruit;
+}
+
+/**
 * Renvoie une valeur aléatoire entre [0-maximum]
 * @param { Integer } maximum
 * @return { Integer } valeur
@@ -367,6 +386,14 @@ void movePlayer(int direction){
     // printf("le joueur possède %d points\n", player.nb_point);      
 }
 
+bool estVivant(){
+    if (player.nb_point == POINT_FAIL)
+    {
+        return false;
+    }
+    return true;
+}
+
 // ******************************************** //
 
 int main(int argc, char const *argv[])
@@ -375,13 +402,20 @@ int main(int argc, char const *argv[])
     initialize_grid();
     printf("\n");
     display_grid();
-    movePlayer(CODE_LEFT);
-    movePlayer(CODE_UP);
-    movePlayer(CODE_LEFT);
-    movePlayer(CODE_DOWN);
-    movePlayer(CODE_RIGHT);
-    int som = numberOfFreeSpaces();
-    printf("\n Il y a %d cases vides \n", som);
+   
+    int nbFruits;
+    bool vivant;
+    do
+    {
+        int direction = chooseDirection();
+        movePlayer(direction);
+        vivant = estVivant();
+        nbFruits = numberOfFruit();
+        printf("\n Il y a %d fruits restants \n", nbFruits);
+    } while (vivant && (nbFruits > 0));
+    
+    // int som = numberOfFreeSpaces();
+    // printf("\n Il y a %d cases vides \n", som);
 
     return 0;
 }
