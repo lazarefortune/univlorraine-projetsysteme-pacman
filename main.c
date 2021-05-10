@@ -7,11 +7,8 @@
 #define HEIGHT 6
 #define WIDTH 10
 
-#define NB_GHOSTS 10
+#define NB_GHOSTS 4
 #define NB_FRUIT 20
-
-// Le nombre de points qui met fin à la partie
-#define POINT_FAIL -1
 
 #define SYMBOL_PACMAN 'C'
 #define SYMBOL_GHOST 'F'
@@ -23,13 +20,14 @@
 #define CODE_DOWN 115
 #define CODE_LEFT 113
 #define CODE_RIGHT 100
+#define CODE_ENTER 10
 
 #define COLOR_RED "\x1b[31m"
 #define COLOR_GREEN "\x1b[32m"
 #define COLOR_YELLOW "\x1b[33m"
 #define COLOR_RESET "\x1b[0m"
 
-struct coord
+struct Coord
 {
     int x;
     int y;
@@ -37,14 +35,15 @@ struct coord
 
 struct PacMan
 {
-    struct coord position;
+    struct Coord position;
     int nb_point;
     int nb_fruits;
+    bool estVivant;
 };
 
 struct Ghost
 {
-    struct coord position;
+    struct Coord position;
     char oldElement;
 };
 
@@ -55,6 +54,7 @@ struct PacMan player = {
             .x = 2,
             .y = 5,
         },
+        .estVivant = true,
         .nb_point = 0
 };
 
@@ -229,12 +229,13 @@ void showError(char* message,bool condition){
 int chooseDirection(){
 
     bool condition;
-    char direction;
-    
+    char direction, clavier;
+    int code;
     do{
         printf("Choisissez une direction: z(haut),q(gauche),d(droite),s(bas) du clavier\n");
-        direction = getchar();
-        condition = ((direction != CODE_UP ) && (direction != CODE_LEFT) && (direction !=  CODE_DOWN) && (direction != CODE_RIGHT));
+        scanf("%c", &direction);
+        code = (int)direction;
+        condition = ((code != CODE_UP ) && (code != CODE_LEFT) && (code !=  CODE_DOWN) && (code != CODE_RIGHT) && (code != CODE_ENTER));
         showError("Erreur de saisie", condition);
     }while(condition);
 
@@ -243,6 +244,7 @@ int chooseDirection(){
         case CODE_DOWN: printf("Fleche du bas\n");         break;
         case CODE_LEFT: printf("Fleche de gauche\n");      break;
         case CODE_RIGHT: printf("Fleche de droite\n");      break;
+        case CODE_ENTER: break;
         default: printf("touche non reconnue");      break;
     }
     
@@ -327,7 +329,7 @@ void movePlayer(int direction){
 
             gameGrid[oldValue][player.position.y] = SYMBOL_FREE;
             gameGrid[player.position.x][player.position.y] = SYMBOL_FAIL;
-            player.nb_point = POINT_FAIL;
+            player.estVivant = false;
             printf("TU AS PERDU !! partie terminee \n");
 
         }else if (element == SYMBOL_FREE){
@@ -356,7 +358,7 @@ void movePlayer(int direction){
 
             gameGrid[player.position.x][player.position.y] = SYMBOL_FAIL;
             gameGrid[player.position.x][oldValue] = SYMBOL_FREE;
-            player.nb_point = POINT_FAIL;
+            player.estVivant = false;
             printf("TU AS PERDU !! partie terminee \n");
 
         }else if (element == SYMBOL_FREE){
@@ -369,14 +371,6 @@ void movePlayer(int direction){
 
     // display_grid();
     // printf("le joueur possède %d points\n", player.nb_point);      
-}
-
-bool estVivant(){
-    if (player.nb_point == POINT_FAIL)
-    {
-        return false;
-    }
-    return true;
 }
 
 
@@ -412,7 +406,7 @@ int calculatePosGhost(int coordonnee, int maximum){
 
 struct Ghost moveGhost(struct Ghost ghost){
 
-    if (!estVivant())
+    if (!player.estVivant)
     {
         return ghost;
     }
@@ -458,7 +452,7 @@ struct Ghost moveGhost(struct Ghost ghost){
     if (gameGrid[ghost.position.x][ghost.position.y] == SYMBOL_PACMAN)
     {
         gameGrid[ghost.position.x][ghost.position.y] = SYMBOL_FAIL;
-        player.nb_point = POINT_FAIL;
+        player.estVivant = false;
     }
     else{
         ghost.oldElement = gameGrid[ghost.position.x][ghost.position.y];
@@ -494,10 +488,9 @@ int main(int argc, char const *argv[])
         movePlayer(direction);
         moveAllGhosts();
         display_grid();
-        vivant = estVivant();
         nbFruits = player.nb_fruits;
         printf("\n Il y a %d fruits collectés \n", nbFruits);
-    } while (vivant && (player.nb_fruits < NB_FRUIT));
+    } while (player.estVivant && (player.nb_fruits < NB_FRUIT));
     
     int som = numberOfFreeSpaces();
     printf("\n Il y a %d cases vides \n", som);
