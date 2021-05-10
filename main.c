@@ -7,7 +7,7 @@
 #define HEIGHT 6
 #define WIDTH 10
 
-#define NB_GHOSTS 4
+#define NB_GHOSTS 10
 #define NB_FRUIT 20
 
 // Le nombre de points qui met fin à la partie
@@ -39,6 +39,7 @@ struct PacMan
 {
     struct coord position;
     int nb_point;
+    int nb_fruits;
 };
 
 struct Ghost
@@ -80,25 +81,6 @@ int numberOfFreeSpaces(){
 }
 
 /**
- * Renvoie le nombre de fruits restant
- * @return { Integer } numberOfFruit
- */
-int numberOfFruit(){
-    int i,j,numberOfFruit = 0;
-    for (i = 0; i < HEIGHT; i++)
-    {
-        for (j = 0; j < WIDTH; j++)
-        {
-            if(gameGrid[i][j] == SYMBOL_FRUIT){
-                numberOfFruit +=1;
-            }
-        }
-
-    }
-    return numberOfFruit;
-}
-
-/**
 * Renvoie une valeur aléatoire entre [0-maximum]
 * @param { Integer } maximum
 * @return { Integer } valeur
@@ -113,6 +95,9 @@ int randomNumber(int maximum){
  * Initialise la grille
  */
 void initialize_grid(){
+
+    // Positionnement du joueur
+    gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
 
     // Positionnement des fantômes
     for (int i = 0; i < NB_GHOSTS; ++i) {
@@ -132,16 +117,14 @@ void initialize_grid(){
                 {
                         .x = x,
                         .y = y,
-                }
+                },
+                .oldElement = SYMBOL_FREE
         };
 
         listGhosts[i] = ghost;
 
         gameGrid[x][y] = SYMBOL_GHOST;
     }
-
-    // Positionnement du joueur
-    gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
 
     // Positionnement des fruits
     for (int i = 0; i < NB_FRUIT; ++i) {
@@ -246,7 +229,7 @@ void showError(char* message,bool condition){
 int chooseDirection(){
 
     bool condition;
-    int direction;
+    char direction;
     
     do{
         printf("Choisissez une direction: z(haut),q(gauche),d(droite),s(bas) du clavier\n");
@@ -337,6 +320,7 @@ void movePlayer(int direction){
             gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
             gameGrid[oldValue][player.position.y] = SYMBOL_FREE;
             player.nb_point += 100;
+            player.nb_fruits +=1;
             // printf("le joueur possède %d points\n", player.nb_point);
 
         }else if(element == SYMBOL_GHOST){
@@ -365,6 +349,7 @@ void movePlayer(int direction){
             gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
             gameGrid[player.position.x][oldValue] = SYMBOL_FREE;
             player.nb_point += 100;
+            player.nb_fruits +=1;
             // printf("le joueur possède %d points\n", player.nb_point);
 
         }else if(element == SYMBOL_GHOST){
@@ -382,7 +367,7 @@ void movePlayer(int direction){
         }
     }
 
-    display_grid();
+    // display_grid();
     // printf("le joueur possède %d points\n", player.nb_point);      
 }
 
@@ -392,6 +377,104 @@ bool estVivant(){
         return false;
     }
     return true;
+}
+
+
+/**
+ * Renvoie la nouvelle position en abscisse/ordonnee du fantôme
+ * @param { Integer } coordonnee
+ * @param { Integer } maximum
+ * @return { Integer } resultat
+ */
+int calculatePosGhost(int coordonnee, int maximum){
+
+    // int coordInf = coordonnee-1;
+    // int coordSup = coordonnee+1;
+    int tab[2], coordInf = (coordonnee-1), coordSup = (coordonnee+1);
+
+    if (coordInf >= 0)
+    {
+        tab[0] = coordInf;
+    }else{
+        return coordSup;
+    }
+
+    if (coordSup < maximum)
+    {
+        tab[1] = coordSup;
+    }else{
+        return coordInf;
+    }
+
+    int choix = rand()%2;
+    return tab[choix];
+}
+
+struct Ghost moveGhost(struct Ghost ghost){
+
+    if (!estVivant())
+    {
+        return ghost;
+    }
+    
+    // choix de la coordonnee à modifier
+    int choix = rand()%2, oldValueCoord, newValueCoord;
+
+    if (choix == 0)
+    {
+        newValueCoord = calculatePosGhost(ghost.position.x, HEIGHT);
+
+        oldValueCoord = ghost.position.x;
+        // s'il y a un fantôme à cet endroit on ne fait rien
+        if (gameGrid[newValueCoord][ghost.position.y] == SYMBOL_GHOST)
+        {
+            return ghost;
+        }
+        
+        // On modifie les coordonnees du ghost en x
+        ghost.position.x = newValueCoord;
+
+        // On place l'élément présent avant le passage du Ghost
+        gameGrid[oldValueCoord][ghost.position.y] = ghost.oldElement;
+    }
+    if(choix == 1){
+        newValueCoord = calculatePosGhost(ghost.position.y, WIDTH);
+
+        oldValueCoord = ghost.position.y;
+        // s'il y a un fantôme à cet endroit on ne fait rien
+        if (gameGrid[ghost.position.x][newValueCoord] == SYMBOL_GHOST)
+        {
+            return ghost;
+        }
+
+        // On modifie les coordonnees du ghost en y
+        ghost.position.y = newValueCoord;
+
+        // On place l'élément présent avant le passage du Ghost
+        gameGrid[ghost.position.x][oldValueCoord] = ghost.oldElement;
+    }
+    
+    // Test si on tombe sur le joueur
+    if (gameGrid[ghost.position.x][ghost.position.y] == SYMBOL_PACMAN)
+    {
+        gameGrid[ghost.position.x][ghost.position.y] = SYMBOL_FAIL;
+        player.nb_point = POINT_FAIL;
+    }
+    else{
+        ghost.oldElement = gameGrid[ghost.position.x][ghost.position.y];
+        gameGrid[ghost.position.x][ghost.position.y] = SYMBOL_GHOST;
+    }
+
+    return ghost;
+}
+
+void moveAllGhosts(){
+    // Parcours des fantômes
+    for (int i = 0; i < NB_GHOSTS; i++)
+    {
+        // On déplace un fantôme
+        listGhosts[i] = moveGhost(listGhosts[i]);    
+    }
 }
 
 // ******************************************** //
@@ -409,13 +492,15 @@ int main(int argc, char const *argv[])
     {
         int direction = chooseDirection();
         movePlayer(direction);
+        moveAllGhosts();
+        display_grid();
         vivant = estVivant();
-        nbFruits = numberOfFruit();
-        printf("\n Il y a %d fruits restants \n", nbFruits);
-    } while (vivant && (nbFruits > 0));
+        nbFruits = player.nb_fruits;
+        printf("\n Il y a %d fruits collectés \n", nbFruits);
+    } while (vivant && (player.nb_fruits < NB_FRUIT));
     
-    // int som = numberOfFreeSpaces();
-    // printf("\n Il y a %d cases vides \n", som);
+    int som = numberOfFreeSpaces();
+    printf("\n Il y a %d cases vides \n", som);
 
     return 0;
 }
