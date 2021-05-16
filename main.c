@@ -558,7 +558,7 @@ int main(int argc, char const *argv[])
                 moveAllGhosts();
                 display_grid();
                 nbFruits = player.nb_fruits;
-                printf("\n Il y a %d fruits collectés \n", nbFruits);
+                printf("\n Il y a %d fruits collectes \n", nbFruits);
             }
             printf("Votre score : %d \n", player.nb_point);
         }
