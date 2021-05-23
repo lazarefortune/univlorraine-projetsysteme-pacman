@@ -9,7 +9,7 @@
 
 enum Dimension { HEIGHT = 10, WIDTH = 10 };
 
-enum Coordonnee { abscisse = 0, ordonnee = 1 }; 
+enum coordinate { abscisse = 0, ordonnee = 1 }; 
 
 #define NB_GHOSTS 5
 #define NB_FRUIT 6
@@ -332,17 +332,17 @@ int giveMoveValue(int direction){
 }
 /**
  * Renvoie la nouvelle position en abscisse/ordonnee du joueur
- * @param { Integer } coordonnee
+ * @param { Integer } coordinate
  * @param { Integer } maximum
- * @return { Integer } resultat
+ * @return { Integer } result
  */
-int calculatePos(int coordonnee, int maximum){
-    int resultat = coordonnee%maximum;
-    if (resultat < 0)
+int calculatePos(int coordinate, int maximum){
+    int result = coordinate%maximum;
+    if (result < 0)
     {
-        resultat += maximum;
+        result += maximum;
     }
-    return resultat;
+    return result;
 }
 
 void refreshPlayer(char symbol){
@@ -391,15 +391,15 @@ void movePlayer(int direction){
 
 /**
  * Renvoie la nouvelle position en abscisse/ordonnee du fantôme
- * @param { Integer } coordonnee
+ * @param { Integer } coordinate
  * @param { Integer } maximum
- * @return { Integer } resultat
+ * @return { Integer } result
  */
-int calculatePosGhost(int coordonnee, int maximum){
+int calculatePosGhost(int coordinate, int maximum){
 
-    // int coordInf = coordonnee-1;
-    // int coordSup = coordonnee+1;
-    int tab[2], coordInf = (coordonnee-1), coordSup = (coordonnee+1);
+    // int coordInf = coordinate-1;
+    // int coordSup = coordinate+1;
+    int tab[2], coordInf = (coordinate-1), coordSup = (coordinate+1);
 
     if (coordInf >= 0)
     {
