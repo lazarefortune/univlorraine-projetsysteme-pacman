@@ -345,79 +345,47 @@ int calculatePos(int coordonnee, int maximum){
     return resultat;
 }
 
+void refreshPlayer(char symbol){
+    if (symbol == SYMBOL_GHOST)
+    {
+        player.estVivant = false;
+        printf("TU AS PERDU !! partie terminee \n");
+    }
+    if(symbol == SYMBOL_FRUIT){
+        player.nb_point += 100;
+        player.nb_fruits +=1;
+    }
+    
+}
+
 /**
  * Deplace le joueur dans la grille
  */
 void movePlayer(int direction){
 
-    /*
-    [
-        0  [0,1,2,3,4,5,6],
-        1  [0,1,2,3,4,5,6],
-        2  [0,1,2,3,4,5,6],
-        3  [0,1,2,3,4,5,6],
-    ]
-    */
-
-    int oldValue = 0;
     int deplacement = giveMoveValue(direction) ;
-    // A REFACTORER ---- TROP LONG
+
+    gameGrid[player.position.x][player.position.y] = SYMBOL_FREE;
+    
     if (direction == CODE_UP || direction == CODE_DOWN)
     {
-        oldValue = player.position.x;
-        // player.position.x = (player.position.x + deplacement)%HEIGHT;
+
         player.position.x = calculatePos((player.position.x + deplacement), HEIGHT);
-
-        // on test ce qui se trouve à cet endroit dans la grille
-        char element = gameGrid[player.position.x][player.position.y];
-        if (element == SYMBOL_FRUIT)
-        {
-            gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
-            gameGrid[oldValue][player.position.y] = SYMBOL_FREE;
-            player.nb_point += 100;
-            player.nb_fruits +=1;
-
-        }else if(element == SYMBOL_GHOST){
-
-            gameGrid[oldValue][player.position.y] = SYMBOL_FREE;
-            gameGrid[player.position.x][player.position.y] = SYMBOL_FAIL;
-            player.estVivant = false;
-            printf("TU AS PERDU !! partie terminee \n");
-
-        }else if (element == SYMBOL_FREE){
-
-            gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
-            gameGrid[oldValue][player.position.y] = SYMBOL_FREE;
-
-        }
     }else if(direction == CODE_LEFT || direction == CODE_RIGHT){
-        oldValue = player.position.y;
+
         player.position.y = calculatePos((player.position.y + deplacement), WIDTH);
 
-        // on test ce qui se trouve à cet endroit dans la grille
-        char element = gameGrid[player.position.x][player.position.y];
-        if (element == SYMBOL_FRUIT)
-        {
-
-            gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
-            gameGrid[player.position.x][oldValue] = SYMBOL_FREE;
-            player.nb_point += 100;
-            player.nb_fruits +=1;
-
-        }else if(element == SYMBOL_GHOST){
-
-            gameGrid[player.position.x][player.position.y] = SYMBOL_FAIL;
-            gameGrid[player.position.x][oldValue] = SYMBOL_FREE;
-            player.estVivant = false;
-            printf("TU AS PERDU !! partie terminee \n");
-
-        }else if (element == SYMBOL_FREE){
-
-            gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
-            gameGrid[player.position.x][oldValue] = SYMBOL_FREE;
-
-        }
     }
+
+    char element = gameGrid[player.position.x][player.position.y];
+    if (element == SYMBOL_GHOST)
+    {
+        gameGrid[player.position.x][player.position.y] = SYMBOL_FAIL;
+    }else{
+        gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
+    }
+    
+    refreshPlayer(element);
 }
 
 
