@@ -8,3 +8,10 @@ Projet systeme en C, conception du jeu PACMAN avec communication serveur-client
 - Il n'y a pas de limite de terrain, si le joueur / un fantôme dépasse la zone, il apparait de l'autre coté à la même ligne / colonne.
 - Les déplacements se font par z(haut),q(gauche),d(droite),s(bas) des touches du clavier.
 - Un fantôme peut se déplacer sur un autre fantôme
+
+###### ATTENTION:
+
+- Le jeu est fonctionnel(Main)
+- Lors de la connexion client/serveur:
+    - dans le fichier client, la fonction existFruit() qui vérifie s'il reste des fruits pour mettre fin à la partie est fausse. Car si un fantôme se trouve sur le fruit dans la gameGrid, il ne comptabilise pas ce fruit et la partie s'arrête alors qu'il ne faut pas.
+    - Une prochaine mise à jour corrigera ce bug dans la v1.0.5.
