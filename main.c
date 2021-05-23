@@ -9,7 +9,7 @@
 
 enum Dimension { HEIGHT = 10, WIDTH = 10 };
 
-enum Coordonnee { abscisse = 0, ordonnee = 1 }; 
+enum coordinate { abscisse = 0, ordonnee = 1 }; 
 
 #define NB_GHOSTS 5
 #define NB_FRUIT 6
@@ -332,17 +332,30 @@ int giveMoveValue(int direction){
 }
 /**
  * Renvoie la nouvelle position en abscisse/ordonnee du joueur
- * @param { Integer } coordonnee
+ * @param { Integer } coordinate
  * @param { Integer } maximum
- * @return { Integer } resultat
+ * @return { Integer } result
  */
-int calculatePos(int coordonnee, int maximum){
-    int resultat = coordonnee%maximum;
-    if (resultat < 0)
+int calculatePos(int coordinate, int maximum){
+    int result = coordinate%maximum;
+    if (result < 0)
     {
-        resultat += maximum;
+        result += maximum;
     }
-    return resultat;
+    return result;
+}
+
+void refreshPlayer(char symbol){
+    if (symbol == SYMBOL_GHOST)
+    {
+        player.estVivant = false;
+        printf("TU AS PERDU !! partie terminee \n");
+    }
+    if(symbol == SYMBOL_FRUIT){
+        player.nb_point += 100;
+        player.nb_fruits +=1;
+    }
+    
 }
 
 /**
@@ -350,88 +363,43 @@ int calculatePos(int coordonnee, int maximum){
  */
 void movePlayer(int direction){
 
-    /*
-    [
-        0  [0,1,2,3,4,5,6],
-        1  [0,1,2,3,4,5,6],
-        2  [0,1,2,3,4,5,6],
-        3  [0,1,2,3,4,5,6],
-    ]
-    */
-
-    int oldValue = 0;
     int deplacement = giveMoveValue(direction) ;
-    // A REFACTORER ---- TROP LONG
+
+    gameGrid[player.position.x][player.position.y] = SYMBOL_FREE;
+    
     if (direction == CODE_UP || direction == CODE_DOWN)
     {
-        oldValue = player.position.x;
-        // player.position.x = (player.position.x + deplacement)%HEIGHT;
+
         player.position.x = calculatePos((player.position.x + deplacement), HEIGHT);
-
-        // on test ce qui se trouve à cet endroit dans la grille
-        char element = gameGrid[player.position.x][player.position.y];
-        if (element == SYMBOL_FRUIT)
-        {
-            gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
-            gameGrid[oldValue][player.position.y] = SYMBOL_FREE;
-            player.nb_point += 100;
-            player.nb_fruits +=1;
-
-        }else if(element == SYMBOL_GHOST){
-
-            gameGrid[oldValue][player.position.y] = SYMBOL_FREE;
-            gameGrid[player.position.x][player.position.y] = SYMBOL_FAIL;
-            player.estVivant = false;
-            printf("TU AS PERDU !! partie terminee \n");
-
-        }else if (element == SYMBOL_FREE){
-
-            gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
-            gameGrid[oldValue][player.position.y] = SYMBOL_FREE;
-
-        }
     }else if(direction == CODE_LEFT || direction == CODE_RIGHT){
-        oldValue = player.position.y;
+
         player.position.y = calculatePos((player.position.y + deplacement), WIDTH);
 
-        // on test ce qui se trouve à cet endroit dans la grille
-        char element = gameGrid[player.position.x][player.position.y];
-        if (element == SYMBOL_FRUIT)
-        {
-
-            gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
-            gameGrid[player.position.x][oldValue] = SYMBOL_FREE;
-            player.nb_point += 100;
-            player.nb_fruits +=1;
-
-        }else if(element == SYMBOL_GHOST){
-
-            gameGrid[player.position.x][player.position.y] = SYMBOL_FAIL;
-            gameGrid[player.position.x][oldValue] = SYMBOL_FREE;
-            player.estVivant = false;
-            printf("TU AS PERDU !! partie terminee \n");
-
-        }else if (element == SYMBOL_FREE){
-
-            gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
-            gameGrid[player.position.x][oldValue] = SYMBOL_FREE;
-
-        }
     }
+
+    char element = gameGrid[player.position.x][player.position.y];
+    if (element == SYMBOL_GHOST)
+    {
+        gameGrid[player.position.x][player.position.y] = SYMBOL_FAIL;
+    }else{
+        gameGrid[player.position.x][player.position.y] = SYMBOL_PACMAN;
+    }
+    
+    refreshPlayer(element);
 }
 
 
 /**
  * Renvoie la nouvelle position en abscisse/ordonnee du fantôme
- * @param { Integer } coordonnee
+ * @param { Integer } coordinate
  * @param { Integer } maximum
- * @return { Integer } resultat
+ * @return { Integer } result
  */
-int calculatePosGhost(int coordonnee, int maximum){
+int calculatePosGhost(int coordinate, int maximum){
 
-    // int coordInf = coordonnee-1;
-    // int coordSup = coordonnee+1;
-    int tab[2], coordInf = (coordonnee-1), coordSup = (coordonnee+1);
+    // int coordInf = coordinate-1;
+    // int coordSup = coordinate+1;
+    int tab[2], coordInf = (coordinate-1), coordSup = (coordinate+1);
 
     if (coordInf >= 0)
     {
