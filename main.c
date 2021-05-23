@@ -574,7 +574,7 @@ void moveAllGhosts(){
     for (int i = 0; i < NB_GHOSTS; i++)
     {
         int choix = rand()%2;
-        // listGhosts[i] = bestMoveGhost(listGhosts[i]);
+        
         if (choix == 0)
         {
             listGhosts[i] = bestMoveGhost(listGhosts[i]);
@@ -586,9 +586,7 @@ void moveAllGhosts(){
 
 // ******************************************** //
 
-int main(int argc, char const *argv[])
-{
-    srand(time(NULL));
+void runGame(){
     initialize_grid();
     printf("\n");
     display_grid();
@@ -609,6 +607,46 @@ int main(int argc, char const *argv[])
             printf("Votre score : %d \n", player.nb_point);
         }
     } while (player.estVivant && (player.nb_fruits < NB_FRUIT));
+}
 
+void menu(){
+    long choix;
+    char choix2;
+    do
+    {
+        printf("---------Menu--------\n");
+        printf("1. Jouer \n");
+        printf("2. Consulter les scores \n");
+        printf("3. Quitter le jeu \n"); 
+        // choix  = 0;
+        scanf("%c", &choix2);
+        printf("choix2 avant: %d \n", (int)choix2); 
+        scanf("%ld", &choix);
+        printf("choix avant: %ld \n", choix); 
+        // choix = (long)choix;  
+        printf("choix : %ld \n", choix); 
+    } while (choix != 1 && choix != 2 && choix != 3 && sizeof(int) != sizeof(choix));
+    
+    switch (choix)
+    {
+    case 1:
+        runGame();
+        break;
+    case 2:
+        break;
+    default:
+        break;
+    }
+}
+
+int main(int argc, char const *argv[])
+{
+    srand(time(NULL));
+    do
+    {
+        menu();
+    } while (endGame);
+    
+    
     return 0;
 }
