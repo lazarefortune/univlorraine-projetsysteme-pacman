@@ -276,29 +276,20 @@ void showError(char* message,bool condition){
 int chooseDirection(){
 
     bool condition;
-    char direction, clavier;
-    int code;
-    do{
-        if (code != CODE_ENTER)
-        {
-            printf("z(haut),q(gauche),d(droite),s(bas), f(Fin du jeu)\n");
-        }
+    char direction;
 
-        scanf("%c", &direction);
-        code = (int)direction;
-        // printf("code : %d \n", code);
-        condition = ((code != CODE_UP ) && (code != CODE_LEFT) && (code !=  CODE_DOWN) && (code != CODE_RIGHT) && (code != CODE_ENTER) && (code != CODE_END_GAME));
+    do{
+        printf("z : haut | q : gauche | d : droite | s : bas | f : Fin du jeu\n");
+        int res = scanf(" %c", &direction);
+        printf("\t direction %c \n", direction);
+        
+        condition = ((direction != CODE_UP ) && (direction != CODE_LEFT) && (direction !=  CODE_DOWN) && (direction != CODE_RIGHT) && (direction != CODE_END_GAME));
         showError("Erreur de saisie", condition);
     }while(condition);
 
-    switch(direction) {
-        case CODE_UP: printf("Fleche du haut\n");        break;
-        case CODE_DOWN: printf("Fleche du bas\n");         break;
-        case CODE_LEFT: printf("Fleche de gauche\n");      break;
-        case CODE_RIGHT: printf("Fleche de droite\n");      break;
-        case CODE_END_GAME: printf("Fin du jeu...\n");           break;
-        case CODE_ENTER:                                break;
-        default: printf("touche non reconnue");      break;
+    if (direction == CODE_END_GAME)
+    {
+        printf("Fin du jeu... \n");
     }
 
     return direction;
@@ -415,8 +406,8 @@ int calculatePosGhost(int coordinate, int maximum){
         return coordInf;
     }
 
-    int choix = rand()%2;
-    return tab[choix];
+    int choice = rand()%2;
+    return tab[choice];
 }
 
 int searchGhost(int x, int y){
@@ -483,16 +474,16 @@ Ghost bestMoveGhost(Ghost ghost){
     }
 
     int indiceGhost;
-    int choix = rand()%2;
+    int choice = rand()%2;
 
     gameGrid[ghost.position.x][ghost.position.y] = ghost.oldElement;
     
-    if ( choix == abscisse )
+    if ( choice == abscisse )
     {
         ghost.position.x = getNewPosition(ghost.position.x, HEIGHT, player.position.x);
     }
 
-    if( choix == ordonnee ){
+    if( choice == ordonnee ){
         ghost.position.y = getNewPosition(ghost.position.y, WIDTH, player.position.y);
     }
 
@@ -514,16 +505,16 @@ Ghost moveGhost(Ghost ghost){
         return ghost;
     }
 
-    int choix = rand()%2;
+    int choice = rand()%2;
     int indiceGhost;
 
     gameGrid[ghost.position.x][ghost.position.y] = ghost.oldElement;
-    if (choix == abscisse)
+    if (choice == abscisse)
     {
         ghost.position.x = calculatePosGhost(ghost.position.x, HEIGHT);
     }
 
-    if(choix == ordonnee){  
+    if(choice == ordonnee){  
         ghost.position.y = calculatePosGhost(ghost.position.y, WIDTH);
     }
         
@@ -541,9 +532,9 @@ void moveAllGhosts(){
     // Parcours des fantômes
     for (int i = 0; i < NB_GHOSTS; i++)
     {
-        int choix = rand()%2;
+        int choice = rand()%2;
         
-        if (choix == 0)
+        if (choice == 0)
         {
             listGhosts[i] = bestMoveGhost(listGhosts[i]);
         }else{
@@ -562,58 +553,62 @@ void runGame(){
     do
     {
         int direction = chooseDirection();
-        if (direction != CODE_ENTER)
-        {
-            if(direction == CODE_END_GAME){
-                player.estVivant = false;
-            }else{
-                movePlayer(direction);
-                moveAllGhosts();
-                display_grid();
-                printf("\n Il y a %d fruits collectes \n", player.nb_fruits);
-            }
-            printf("Votre score : %d \n", player.nb_point);
+
+        if(direction == CODE_END_GAME){
+            player.estVivant = false;
+        }else{
+            movePlayer(direction);
+            moveAllGhosts();
+            display_grid();
+            printf("\n Il y a %d fruits collectes \n", player.nb_fruits);
         }
+        printf("Votre score : %d \n", player.nb_point);
+
     } while (player.estVivant && (player.nb_fruits < NB_FRUIT));
+    // envoyer au client fin de la partie
 }
 
+enum menuOptions { play = 49, score = 50 ,end = 51 };
+
 void menu(){
-    long choix;
-    char choix2;
+    char choice;
+
+    printf("---------Menu--------\n");
+    printf("1. Jouer \n");
+    printf("2. Consulter les scores \n");
+    printf("3. Quitter le jeu \n"); 
+    
     do
     {
-        printf("---------Menu--------\n");
-        printf("1. Jouer \n");
-        printf("2. Consulter les scores \n");
-        printf("3. Quitter le jeu \n"); 
-        // choix  = 0;
-        scanf("%c", &choix2);
-        printf("choix2 avant: %d \n", (int)choix2); 
-        scanf("%ld", &choix);
-        printf("choix avant: %ld \n", choix); 
-        // choix = (long)choix;  
-        printf("choix : %ld \n", choix); 
-    } while (choix != 1 && choix != 2 && choix != 3 && sizeof(int) != sizeof(choix));
+        scanf(" %c", &choice);
+        // printf("\t avant cast la valeur : %c \n", choice);
+        
+        printf("la valeur : %d \n", choice);
+
+    } while (choice != play && choice != score && choice != end);
     
-    switch (choix)
+
+    switch (choice)
     {
-    case 1:
+    case play:
         runGame();
         break;
-    case 2:
+    case score:
         break;
     default:
         break;
     }
+
+
+    // int direction = chooseDirection();
+    // printf("valeur : %d\n", direction);
 }
 
 int main(int argc, char const *argv[])
 {
     srand(time(NULL));
-    do
-    {
-        menu();
-    } while (endGame);
+    menu();
+    // runGame();
     
     
     return 0;
