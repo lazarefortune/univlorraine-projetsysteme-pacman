@@ -1,16 +1,54 @@
 # AS_2021_Projet_Systeme
 Projet systeme en C, conception du jeu PACMAN avec communication serveur-client
 
-###### Options :
+## Description
+Ce projet consiste à développer une version console du célèbre jeu PACMAN. 
+Il met en œuvre des concepts de programmation système en C, notamment la gestion des entrées utilisateur et la communication entre un client et un serveur.
 
-- Si le nombre de fantômes / d'étoiles est trop grand la recherche aléatoire des positions de départ s'arrête.
-- Il est impossible en début de partie de tomber sur un fantôme / étoile
-- Il n'y a pas de limite de terrain, si le joueur / un fantôme dépasse la zone, il apparait de l'autre coté à la même ligne / colonne.
-- Les déplacements se font par z(haut),q(gauche),d(droite),s(bas) des touches du clavier.
-- Un fantôme peut se déplacer sur un autre fantôme
+## Fonctionnalités principales :
+- Gameplay console : Les déplacements sont effectués via les touches du clavier. 
+- Objectif : Manger tous les fruits présents dans le labyrinthe tout en évitant les fantômes. 
+- Pseudo IA des fantômes : Les fantômes se déplacent de manière aléatoire grâce à un script intégré.
+- Conditions de fin :
+  - Le jeu se termine lorsque tous les fruits sont collectés. 
+  - Une collision avec un fantôme met fin à la partie.
 
-###### ATTENTION:
+---
 
-- Lors de la connexion client/serveur:
-    - dans le fichier client, la fonction existFruit() qui vérifie s'il reste des fruits pour mettre fin à la partie est buguée. Car si un fantôme se trouve sur le fruit dans la gameGrid, il ne comptabilise pas ce fruit et la partie s'arrête sans être finie.
-NB: Une prochaine mise à jour corrigera ce bug dans la v1.0.5.
+## Structure du projet
+- main.c : Le script complet sans communication client/serveur. 
+- client.c : Gère la logique côté client pour les interactions utilisateur. 
+- server.c : Gère la logique serveur pour le suivi de l'état du jeu et la synchronisation. 
+
+
+
+## Prérequis
+Avant de commencer, assurez-vous que votre environnement remplit les conditions suivantes :
+- Un compilateur C est installé sur votre machine (par exemple gcc). 
+- Un terminal est disponible pour exécuter le jeu. 
+- Optionnel : Docker pour exécuter le projet dans un environnement isolé.
+---
+
+## Installation
+### Option 1 : Installation avec Docker
+
+1. Construire l'image Docker
+```bash
+docker build -t pacman .
+```
+
+2. Lancer le conteneur Docker
+```bash
+docker run -it pacman
+```
+
+### Option 2 : Installation sans Docker
+1. Compiler le programme
+```bash
+gcc -o pacman main.c
+```
+
+2. Lancer le jeu
+```bash
+./pacman
+```
